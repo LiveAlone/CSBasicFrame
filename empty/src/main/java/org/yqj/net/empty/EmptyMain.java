@@ -1,4 +1,4 @@
-package org.yqj.net.demo.empty;
+package org.yqj.net.empty;
 
 import com.google.common.collect.ImmutableMap;
 
