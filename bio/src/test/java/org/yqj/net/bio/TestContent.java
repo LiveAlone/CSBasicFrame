@@ -20,21 +20,40 @@ public class TestContent {
 
     @Test
     public void ServerStartTest() {
-        new BioServer(socket -> {
-            try (InputStream in = socket.getInputStream(); OutputStream out = socket.getOutputStream();) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-                PrintWriter writer = new PrintWriter(out, true);
-                while (true) {
-                    String readContent = reader.readLine();
-                    log.info("accept request content from client :{} content: {}", socket.getRemoteSocketAddress().toString(), readContent);
-                    Thread.sleep(200);
-                    writer.println(String.format("current time stamp is %d", System.currentTimeMillis()));
+        try {
+            new BioServer(socket -> {
+                try (InputStream in = socket.getInputStream(); OutputStream out = socket.getOutputStream();) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                    PrintWriter writer = new PrintWriter(out, true);
+                    while (true) {
+                        String readContent = reader.readLine();
+                        if (readContent == null) {
+                            // all content finished
+                            log.info("server client read content empty finished");
+                            break;
+                        }
+                        log.info("accept request content from client :{} content: {}", socket.getRemoteSocketAddress().toString(), readContent);
+                        Thread.sleep(200);
+                        writer.println(String.format("current time stamp is %d", System.currentTimeMillis()));
+                    }
                 }
-            }
-        });
+            }).start();
+        } catch (Exception e) {
+            log.error("catch exception condition", e);
+        }
     }
 
-    public static void main(String[] args) {
+    @Test
+    public void testClient1() {
+        startClient();
+    }
+
+    @Test
+    public void testClient2() {
+        startClient();
+    }
+
+    public static void startClient() {
         new BioClient("localhost", 8888, socket -> {
             try (InputStream in = socket.getInputStream(); OutputStream out = socket.getOutputStream();) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in));
