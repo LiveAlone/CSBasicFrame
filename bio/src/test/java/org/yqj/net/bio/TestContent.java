@@ -1,6 +1,7 @@
 package org.yqj.net.bio;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -16,6 +17,7 @@ import java.io.PrintWriter;
  * Descirbe:
  */
 @Slf4j
+@Ignore
 public class TestContent {
 
     @Test
