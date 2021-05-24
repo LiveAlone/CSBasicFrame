@@ -1,21 +1,16 @@
 package org.yqj.net.nio;
 
+import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 /**
  * Description:
@@ -37,48 +32,26 @@ public class NioClient {
 
     private boolean stop;
 
-    private AtomicInteger threadNumber;
-
-    /**
-     * 执行处理消息任务线程池
-     */
-    private ExecutorService executorService;
-
-    private Function<SelectionKey, AbstractClientChannelHandler> function;
-
-    public NioClient(Function<SelectionKey, AbstractClientChannelHandler> fun) throws Exception{
-        this.function = fun;
+    public NioClient() throws Exception {
         try {
             this.selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("client socket channel create fail, cause: ", e);
             throw e;
         }
-
-        threadNumber = new AtomicInteger(1);
-        ThreadFactory threadFactory = r -> {
-            Thread thread = new Thread(r);
-            thread.setName(String.format("client_process_work_thread_%d", threadNumber.getAndIncrement()));
-            return thread;
-        };
-        executorService = new ThreadPoolExecutor(4,
-                4, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(5000), threadFactory);
     }
 
     public void start() {
         try {
-            if (doConnect()){
-
-            }
-        }catch (Exception e){
+            doConnect();
+        } catch (Exception e) {
             log.error("client socket connect error, cause: ", e);
             return;
         }
 
-        while (!stop){
+        while (!stop) {
             try {
                 this.selector.select(1000);
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
@@ -108,7 +81,7 @@ public class NioClient {
 
         try {
             this.selector.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("client close socket channel fail, cause: ", e);
         }
     }
@@ -119,24 +92,47 @@ public class NioClient {
             if (key.isConnectable()) {
                 if (socketChannel.finishConnect()) {
                     socketChannel.register(this.selector, SelectionKey.OP_READ);
-                    // todo connection finish
-                }else {
+                    doWrite(socketChannel);
+                } else {
                     throw new RuntimeException("client connection not finish");
                 }
             }
             if (key.isReadable()) {
-                // todo readable content
+                ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+                int readBytes = socketChannel.read(byteBuffer);
+                if (readBytes > 0) {
+                    byteBuffer.flip();
+                    byte[] bytes = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(bytes);
+                    log.info("client gain data content from :{} content:{}", socketChannel.socket().getRemoteSocketAddress().toString(), new String(bytes, Charsets.UTF_8));
+                } else if (readBytes < 0) {
+                    log.info("client socket channel closed :{}", socketChannel.socket().getRemoteSocketAddress().toString());
+                    key.cancel();
+                    socketChannel.close();
+                } else {
+                    log.info("socket channel read content empty ignore");
+                }
             }
         }
     }
 
-    private boolean doConnect() throws IOException {
+    private void doWrite(SocketChannel sc) throws Exception {
+        byte[] requestBody = "nio client request call".getBytes();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(requestBody.length);
+        byteBuffer.put(requestBody);
+        byteBuffer.flip();
+        sc.write(byteBuffer);
+        if (!byteBuffer.hasRemaining()) {
+            log.info("write buffer success content");
+        }
+    }
+
+    private void doConnect() throws Exception {
         if (socketChannel.connect(new InetSocketAddress(address, port))) {
             socketChannel.register(this.selector, SelectionKey.OP_READ);
-            return true;
-        }else {
+            doWrite(socketChannel);
+        } else {
             socketChannel.register(this.selector, SelectionKey.OP_CONNECT);
-            return false;
         }
     }
 }

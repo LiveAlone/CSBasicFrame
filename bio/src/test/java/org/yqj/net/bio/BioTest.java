@@ -18,7 +18,7 @@ import java.io.PrintWriter;
  */
 @Slf4j
 @Ignore
-public class TestContent {
+public class BioTest {
 
     @Test
     public void ServerStartTest() {
@@ -62,6 +62,7 @@ public class TestContent {
                 PrintWriter writer = new PrintWriter(out, true);
                 for (int i = 0; i < 100; i++) {
                     writer.println(String.format("post content is %d", i));
+                    out.flush();
                     System.out.println(reader.readLine());
                     Thread.sleep(1000);
                 }

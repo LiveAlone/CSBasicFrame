@@ -11,11 +11,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 
 /**
@@ -28,49 +24,33 @@ import java.util.function.Function;
 @Slf4j
 public class NioServer {
 
-    public int workerCount = Runtime.getRuntime().availableProcessors();
-
     public int serverPort = 8888;
 
-    private Selector selector;
-
-    private ServerSocketChannel serverSocketChannel;
+    private final Selector selector;
 
     private volatile boolean stop;
-
-    private AtomicInteger threadNumber;
 
     /**
      * 执行处理消息任务线程池
      */
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
-    private Function<SelectionKey, AbstractServerChannelHandler> function;
+    private Function<SelectionKey, AbstractNioServerTask> function;
 
-    public NioServer(Function<SelectionKey, AbstractServerChannelHandler> fun) throws Exception {
-        this.function = fun;
-
+    public NioServer(Function<SelectionKey, AbstractNioServerTask> fun) throws Exception {
         try {
             this.selector = Selector.open();
-            this.serverSocketChannel = ServerSocketChannel.open();
-            this.serverSocketChannel.configureBlocking(false);
-            this.serverSocketChannel.socket().bind(new InetSocketAddress(serverPort), 1024);
-            this.serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
+            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+            serverSocketChannel.configureBlocking(false);
+            serverSocketChannel.socket().bind(new InetSocketAddress(serverPort), 1024);
+            serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT);
             log.info("nio server socket start with port :{}", this.serverPort);
         } catch (Exception e) {
             log.error("nio server socket open error, cause ", e);
             throw e;
         }
-
-        threadNumber = new AtomicInteger(1);
-        ThreadFactory threadFactory = r -> {
-            Thread thread = new Thread(r);
-            thread.setName(String.format("process_work_thread_%d", threadNumber.getAndIncrement()));
-            return thread;
-        };
-        executorService = new ThreadPoolExecutor(workerCount,
-                workerCount, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(5000), threadFactory);
+        executorService = NioThreadPoolFactory.buildTheadPool("nioServerWorker");
+        this.function = fun;
     }
 
     public void start() {
@@ -111,8 +91,8 @@ public class NioServer {
     }
 
     private void handleInput(SelectionKey key) throws IOException {
-        // 简化，只监听链接， 读事件
         if (key.isValid()) {
+            // accept 事件, 当前线程等待处理
             if (key.isAcceptable()) {
                 ServerSocketChannel ssc = (ServerSocketChannel) key.channel();
                 SocketChannel sc = ssc.accept();
@@ -122,7 +102,7 @@ public class NioServer {
             }
 
             if (key.isReadable()) {
-                executorService.submit(function.apply(key));
+                executorService.submit(this.function.apply(key));
             }
         }
     }

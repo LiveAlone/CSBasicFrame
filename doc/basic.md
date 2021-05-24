@@ -13,3 +13,9 @@
     3. protocol 提供协议驱动方式
     4. empty 空集合, 提供数据通讯方式
   
+* bio 阻塞方式， 线程:client = 1:1 线程级别的处理方式
+
+* nio 非阻塞异步方式
+  * server 处理 Selector异步事件, ThreadPool 线程池方式，管理异步ReadWrite 事件。
+  * client 主线程 Process 处理线程异步事件， ThreadPool 异步线程事件处理方式
+  
