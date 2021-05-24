@@ -14,20 +14,22 @@ import java.nio.channels.SocketChannel;
  * Email: yaoqijunmail@foxmail.com
  */
 @Slf4j
-public abstract class AbstractNioServerTask implements Runnable {
+public abstract class NioServerTask implements Runnable {
 
     private SelectionKey selectionKey;
 
     private SocketChannel socketChannel;
 
-    public AbstractNioServerTask(SelectionKey selectionKey) {
+    public NioServerTask(SelectionKey selectionKey) {
         this.selectionKey = selectionKey;
         this.socketChannel = (SocketChannel) selectionKey.channel();
     }
 
     @Override
     public void run() {
-        log.info("socket channel try to process :{}", socketChannel.socket().getRemoteSocketAddress().toString());
+        log.info("socket channel try to process :{}, ops:{}, interestOps:{}",
+                socketChannel.socket().getRemoteSocketAddress().toString(),
+                selectionKey.readyOps(), selectionKey.interestOps());
         try {
             processSocketChannel(this.socketChannel, this.selectionKey);
         } catch (Exception e) {

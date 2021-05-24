@@ -19,7 +19,7 @@ public class NioTest {
 
     @Test
     public void nioServerStart() throws Exception {
-        NioServer nioServer = new NioServer(selectionKey -> new AbstractNioServerTask(selectionKey) {
+        NioServer nioServer = new NioServer(selectionKey -> new NioServerTask(selectionKey) {
             @Override
             public void processSocketChannel(SocketChannel sc, SelectionKey sk) throws Exception {
                 ByteBuffer byteBuffer = ByteBuffer.allocate(1024);

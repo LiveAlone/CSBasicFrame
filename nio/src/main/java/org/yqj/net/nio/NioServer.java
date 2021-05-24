@@ -11,7 +11,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 
 /**
@@ -35,9 +34,9 @@ public class NioServer {
      */
     private final ExecutorService executorService;
 
-    private Function<SelectionKey, AbstractNioServerTask> function;
+    private Function<SelectionKey, NioServerTask> function;
 
-    public NioServer(Function<SelectionKey, AbstractNioServerTask> fun) throws Exception {
+    public NioServer(Function<SelectionKey, NioServerTask> fun) throws Exception {
         try {
             this.selector = Selector.open();
             ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
@@ -58,12 +57,14 @@ public class NioServer {
             try {
                 this.selector.select(1000);
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
+                log.info("current select keys size is :{}", selectionKeys.size());
                 Iterator<SelectionKey> it = selectionKeys.iterator();
                 SelectionKey selectionKey = null;
                 while (it.hasNext()) {
                     selectionKey = it.next();
                     it.remove();
                     try {
+                        // todo yqj 等待解决， selectionKey 就绪被重复选择
                         handleInput(selectionKey);
                     } catch (Exception e) {
                         log.error("selection key handle error cause: ", e);
@@ -104,6 +105,8 @@ public class NioServer {
             if (key.isReadable()) {
                 executorService.submit(this.function.apply(key));
             }
+        }else {
+            log.error("gain invalidate selection keys ignore");
         }
     }
 
