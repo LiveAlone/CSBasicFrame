@@ -25,6 +25,7 @@
     <modules>
         <module>empty</module>
         <module>bio</module>
+        <module>nio</module>
     </modules>
 
     <dependencyManagement>
