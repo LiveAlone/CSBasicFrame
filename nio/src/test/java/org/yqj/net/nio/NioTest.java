@@ -2,6 +2,7 @@ package org.yqj.net.nio;
 
 import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -15,6 +16,7 @@ import java.nio.channels.SocketChannel;
  * Descirbe:
  */
 @Slf4j
+@Ignore
 public class NioTest {
 
     @Test
