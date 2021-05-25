@@ -61,7 +61,7 @@ public class BioTest {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in));
                 PrintWriter writer = new PrintWriter(out, true);
                 for (int i = 0; i < 100; i++) {
-                    writer.println(String.format("post content is %d", i));
+                    writer.println(String.format("post content is %d \n", i));
                     out.flush();
                     System.out.println(reader.readLine());
                     Thread.sleep(1000);

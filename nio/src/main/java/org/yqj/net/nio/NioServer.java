@@ -103,7 +103,8 @@ public class NioServer {
             }
 
             if (key.isReadable()) {
-                executorService.submit(this.function.apply(key));
+//                executorService.submit(this.function.apply(key));
+                this.function.apply(key).run();
             }
         }else {
             log.error("gain invalidate selection keys ignore");

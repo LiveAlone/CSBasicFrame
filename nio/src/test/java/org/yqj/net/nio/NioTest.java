@@ -32,7 +32,7 @@ public class NioTest {
                     byteBuffer.get(bytes);
                     log.info("server gain data content from :{} content:{}", sc.socket().getRemoteSocketAddress().toString(), new String(bytes, Charsets.UTF_8));
 
-                    String response = String.valueOf(System.currentTimeMillis());
+                    String response = String.format("%d \n", System.currentTimeMillis());
                     ByteBuffer byteBufferResponse = ByteBuffer.allocate(response.getBytes().length);
                     byteBufferResponse.put(response.getBytes());
                     byteBufferResponse.flip();
