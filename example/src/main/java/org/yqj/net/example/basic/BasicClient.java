@@ -12,10 +12,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Description:
@@ -37,7 +36,10 @@ public class BasicClient {
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new LoggingHandler()).addLast(new BasicClientHandler());
+//                            socketChannel.pipeline().addLast(new LoggingHandler()).addLast(new BasicClientHandler());
+                            socketChannel.pipeline().addLast(new LineBasedFrameDecoder(1024));
+                            socketChannel.pipeline().addLast(new StringDecoder());
+                            socketChannel.pipeline().addLast(new BasicClientHandler());
                         }
                     });
             ChannelFuture future = bootstrap.connect(host, port).sync();
@@ -50,21 +52,24 @@ public class BasicClient {
     }
 
     public static class BasicClientHandler extends ChannelInboundHandlerAdapter {
+
+        private byte[] req = "QUERY TIME ORDER\n".getBytes();
+
         @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        public void channelActive(ChannelHandlerContext ctx) {
             log.info("client channel active thread is :{}", Thread.currentThread().getName());
-            ctx.writeAndFlush(Unpooled.copiedBuffer("QUERY TIME ORDER".getBytes()));
+            ByteBuf message = null;
+            for (int i = 0; i < 1000; i++) {
+                message = Unpooled.buffer(req.length);
+                message.writeBytes(req);
+                ctx.writeAndFlush(message);
+            }
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            ByteBuf byteBuf = (ByteBuf) msg;
-            byte[] req = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(req);
-            String body = new String(req, StandardCharsets.UTF_8);
-            log.info("client channel read thread is :{}", Thread.currentThread().getName());
-            log.info("client gain server resp time content is :{}", body);
-            ctx.close();
+            String body = (String) msg;
+            log.info("client gain server resp time, thread:{} content is :{}", Thread.currentThread().getName(), body);
         }
 
         @Override
