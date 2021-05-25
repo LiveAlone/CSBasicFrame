@@ -1,4 +1,4 @@
-package org.yqj.net.empty;
+package org.yqj.net.example;
 
 /**
  * Created by yaoqijun.
