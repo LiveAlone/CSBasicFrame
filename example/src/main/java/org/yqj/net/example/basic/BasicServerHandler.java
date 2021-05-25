@@ -22,7 +22,7 @@ public class BasicServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         String body = (String) msg;
         log.info("basic server gain request, thead:{} content is :{}", Thread.currentThread().getName(), body);
-        ByteBuf resp = Unpooled.copiedBuffer(String.format("%s \n", String.valueOf(System.currentTimeMillis())).getBytes());
+        ByteBuf resp = Unpooled.copiedBuffer(String.format("%s $_", String.valueOf(System.currentTimeMillis())).getBytes());
         ctx.writeAndFlush(resp);
     }
 
