@@ -1,4 +1,4 @@
-package org.yqj.net.example;
+package org.yqj.net.transport;
 
 /**
  * Created by yaoqijun.

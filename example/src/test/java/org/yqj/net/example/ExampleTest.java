@@ -1,9 +1,9 @@
-package org.yqj.net.example;
+package org.yqj.net.transport;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.yqj.net.example.basic.BasicClient;
-import org.yqj.net.example.basic.BasicServer;
+import org.yqj.net.transport.basic.BasicClient;
+import org.yqj.net.transport.basic.BasicServer;
 
 /**
  * Created by yaoqijun.

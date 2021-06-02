@@ -1,4 +1,4 @@
-package org.yqj.net.example.basic;
+package org.yqj.net.transport.basic;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

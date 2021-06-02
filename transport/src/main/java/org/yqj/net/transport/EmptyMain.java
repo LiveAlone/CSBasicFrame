@@ -1,4 +1,4 @@
-package org.yqj.net.example;
+package org.yqj.net.transport;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EmptyMain {
     public static void main(String[] args) {
-        log.info("this is main empty content");
+        log.info("this is main transport content");
     }
 }
