@@ -24,11 +24,11 @@
     </properties>
 
     <modules>
-<!--        <module>empty</module>-->
+        <module>empty</module>
 <!--        <module>bio</module>-->
 <!--        <module>nio</module>-->
 <!--        <module>aio</module>-->
-        <module>example</module>
+<!--        <module>example</module>-->
     </modules>
 
     <dependencyManagement>
