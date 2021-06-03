@@ -1,4 +1,4 @@
-package org.yqj.net.transport.basic;
+package org.yqj.net.example.basic;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
